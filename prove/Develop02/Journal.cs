@@ -24,31 +24,46 @@ public class Journal
         }
     }
 
-    public void SaveToFile(string filename)
+    public void SaveToCSV(string filename)
     {
         using (StreamWriter writer = new StreamWriter(filename))
         {
+            // Write header line
+            writer.WriteLine("Date,Prompt,Entry");
+
             foreach (var entry in _entries)
             {
-                writer.WriteLine($"{entry.Date}|{entry.PromptText}|{entry.EntryText}");
+                // Escape any quotation marks in entry text
+                string escapedEntryText = entry.EntryText.Replace("\"", "\"\"");
+                // Enclose entry text in quotes to handle commas
+                writer.WriteLine($"\"{entry.Date}\",\"{entry.PromptText}\",\"{escapedEntryText}\"");
             }
         }
     }
 
-    public void LoadFromFile(string filename)
+    public void LoadFromCSV(string filename)
     {
         _entries.Clear();
 
         if (File.Exists(filename))
         {
-            string[] lines = File.ReadAllLines(filename);
-
-            foreach (var line in lines)
+            using (StreamReader reader = new StreamReader(filename))
             {
-                string[] parts = line.Split('|');
-                if (parts.Length == 3)
+                // Skip header line
+                reader.ReadLine();
+
+                while (!reader.EndOfStream)
                 {
-                    _entries.Add(new Entry(parts[0], parts[1], parts[2]));
+                    string line = reader.ReadLine();
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length == 3)
+                    {
+                        string date = parts[0].Trim('"');
+                        string promptText = parts[1].Trim('"');
+                        string entryText = parts[2].Trim('"').Replace("\"\"", "\"");
+                        _entries.Add(new Entry(date, promptText, entryText));
+                    }
                 }
             }
         }
