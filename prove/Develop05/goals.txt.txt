@@ -1,0 +1,2 @@
+100
+SimpleGoal,give a talk,give a message at sacrament meeting,100
